@@ -72,6 +72,26 @@ Waves_Proj/
 
 ---
 
+## 🔧 Hardware System
+
+Waves is a **software + hardware integrated project**. The hardware prototype is built using an **Arduino** microcontroller connected to water flow/leak sensors.
+
+### How it works
+- The Arduino reads sensor data (leak detection, flow rate, distance) from the pipeline
+- It sends this data to the backend via HTTP POST requests to `/pipeline/status/:room`
+- The Flutter app then reflects the real sensor readings in real time on the Analytics screen
+
+### Current Status
+> ⚠️ The hardware is currently in prototype stage. The backend is running on **simulated data via the Admin Panel API** until the Arduino is fully integrated with live sensor-to-backend communication.
+
+### Hardware Prototype Demo
+
+[![Waves Hardware Prototype](https://img.youtube.com/vi/5WghJJQbnEE/0.jpg)](https://youtu.be/5WghJJQbnEE?si=KAg7hu2jLfhlrQOu)
+
+▶️ [Watch on YouTube](https://youtu.be/5WghJJQbnEE?si=KAg7hu2jLfhlrQOu)
+
+---
+
 ## ⚙️ Tech Stack
 
 | Layer | Technology |
@@ -81,6 +101,7 @@ Waves_Proj/
 | Database | Supabase (PostgreSQL) |
 | Authentication | JWT (jsonwebtoken + bcryptjs) |
 | Deployment | Render (free tier) |
+| Hardware | Arduino (prototype) |
 | Font | Inria Serif |
 
 ---
@@ -214,6 +235,7 @@ PORT=3000
 
 ## 🔮 Roadmap
 
+- [ ] Full Arduino → Backend live integration (replace simulated data)
 - [ ] Real IoT sensor integration (sensors POST data to `/pipeline/status/:room`)
 - [ ] Push notifications on leak detection
 - [ ] Admin panel password protection
