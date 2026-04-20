@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Waves Admin Panel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1e293b;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #334155;
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #38bdf8;
+      letter-spacing: 2px;
+    }
+
+    header span {
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Status Cards */
+    #rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .room-card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #334155;
+      transition: border-color 0.2s;
+    }
+
+    .room-card.leaking {
+      border-color: #ef4444;
+    }
+
+    .room-card.ok {
+      border-color: #22c55e;
+    }
+
+    .room-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+
+    .room-card .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .status-badge.leaking { background: #7f1d1d; color: #fca5a5; }
+    .status-badge.ok { background: #14532d; color: #86efac; }
+
+    .room-card .meta {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+
+    .room-card button {
+      margin-top: 14px;
+      width: 100%;
+      padding: 8px;
+      background: #334155;
+      color: #e2e8f0;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .room-card button:hover { background: #475569; }
+
+    /* Update Form */
+    .form-card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 28px;
+      border: 1px solid #334155;
+      margin-bottom: 48px;
+    }
+
+    .form-card h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #38bdf8;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .form-group input,
+    .form-group select {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #e2e8f0;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: #38bdf8;
+    }
+
+    .form-group select option { background: #1e293b; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+
+    .btn-submit:hover { background: #0369a1; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 14px;
+      color: #e2e8f0;
+      display: none;
+      z-index: 999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .toast.success { border-color: #22c55e; color: #86efac; }
+    .toast.error { border-color: #ef4444; color: #fca5a5; }
+
+    .loader {
+      text-align: center;
+      color: #475569;
+      padding: 40px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>WAVES</h1>
+  <span>Admin Panel — Pipeline Status Manager</span>
+</header>
+
+<div class="container">
+
+  <!-- Live Status -->
+  <p class="section-title">Live Pipeline Status</p>
+  <div id="rooms-grid">
+    <div class="loader">Loading pipeline data...</div>
+  </div>
+
+  <!-- Update Form -->
+  <div class="form-card">
+    <h2>Update Room Status</h2>
+    <form id="update-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Room</label>
+          <select id="room-select" required>
+            <option value="">Select a room...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Leakage</label>
+          <select id="leakage-select" required>
+            <option value="false">No leakage detected</option>
+            <option value="true">Minor leakage detected</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Status Message</label>
+          <input type="text" id="status-input" placeholder="e.g. No leakage detected" required />
+        </div>
+        <div class="form-group">
+          <label>Time Duration (optional)</label>
+          <input type="text" id="time-input" placeholder="e.g. 2 hours" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Distance / Range (optional)</label>
+          <input type="text" id="distance-input" placeholder="e.g. 3-5 meters" />
+        </div>
+      </div>
+      <button type="submit" class="btn-submit">Update Status</button>
+    </form>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = '';  // same origin
+
+  // Auto-fill status message when leakage dropdown changes
+  document.getElementById('leakage-select').addEventListener('change', (e) => {
+    const statusInput = document.getElementById('status-input');
+    statusInput.value = e.target.value === 'true'
+      ? 'Minor leakage detected'
+      : 'No leakage detected';
+  });
+
+  // Show toast notification
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 3000);
+  }
+
+  // Load all rooms
+  async function loadRooms() {
+    try {
+      const res = await fetch(`${API}/pipeline/status`);
+      const json = await res.json();
+      const rooms = json.rooms || [];
+
+      const grid = document.getElementById('rooms-grid');
+      const select = document.getElementById('room-select');
+
+      grid.innerHTML = '';
+      select.innerHTML = '<option value="">Select a room...</option>';
+
+      if (rooms.length === 0) {
+        grid.innerHTML = '<div class="loader">No rooms found. Add rooms via the API or Supabase.</div>';
+        return;
+      }
+
+      rooms.forEach(room => {
+        const isLeaking = room.leakage_detected;
+        const updatedAt = room.updated_at
+          ? new Date(room.updated_at).toLocaleString()
+          : 'Never';
+
+        // Card
+        const card = document.createElement('div');
+        card.className = `room-card ${isLeaking ? 'leaking' : 'ok'}`;
+        card.innerHTML = `
+          <h3>${room.room_name}</h3>
+          <span class="status-badge ${isLeaking ? 'leaking' : 'ok'}">
+            ${isLeaking ? '⚠ Leaking' : '✓ OK'}
+          </span>
+          <p class="meta">${room.status}</p>
+          ${room.time_duration ? `<p class="meta">Duration: ${room.time_duration}</p>` : ''}
+          ${room.distance_range ? `<p class="meta">Range: ${room.distance_range}</p>` : ''}
+          <p class="meta">Updated: ${updatedAt}</p>
+          <button onclick="prefillForm('${room.room_name}', '${room.status}', ${room.leakage_detected}, '${room.time_duration || ''}', '${room.distance_range || ''}')">
+            Edit
+          </button>
+        `;
+        grid.appendChild(card);
+
+        // Dropdown option
+        const option = document.createElement('option');
+        option.value = room.room_name;
+        option.textContent = room.room_name;
+        select.appendChild(option);
+      });
+
+    } catch (err) {
+      document.getElementById('rooms-grid').innerHTML =
+        '<div class="loader">Failed to load data. Is the server running?</div>';
+    }
+  }
+
+  // Prefill form when Edit is clicked
+  function prefillForm(roomName, status, leakage, timeDuration, distanceRange) {
+    document.getElementById('room-select').value = roomName;
+    document.getElementById('status-input').value = status;
+    document.getElementById('leakage-select').value = String(leakage);
+    document.getElementById('time-input').value = timeDuration;
+    document.getElementById('distance-input').value = distanceRange;
+    window.scrollTo({ top: document.getElementById('update-form').offsetTop - 20, behavior: 'smooth' });
+  }
+
+  // Submit update
+  document.getElementById('update-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const room = document.getElementById('room-select').value;
+    const status = document.getElementById('status-input').value.trim();
+    const leakage_detected = document.getElementById('leakage-select').value === 'true';
+    const time_duration = document.getElementById('time-input').value.trim() || null;
+    const distance_range = document.getElementById('distance-input').value.trim() || null;
+
+    if (!room || !status) {
+      showToast('Please select a room and enter a status.', 'error');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API}/pipeline/status/${encodeURIComponent(room)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, leakage_detected, time_duration, distance_range }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        showToast(json.error || 'Update failed.', 'error');
+        return;
+      }
+
+      showToast(`${room} updated successfully!`, 'success');
+      loadRooms();
+    } catch (err) {
+      showToast('Network error. Check server.', 'error');
+    }
+  });
+
+  // Initial load
+  loadRooms();
+  // Auto-refresh every 30 seconds
+  setInterval(loadRooms, 30000);
+</script>
+
+</body>
+</html>
