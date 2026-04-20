@@ -251,6 +251,3 @@ PORT=3000
 
 ---
 
-## 👩‍💻 Author
-
-**Nisha Rani** — [github.com/nisharani-dev](https://github.com/nisharani-dev)
