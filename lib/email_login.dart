@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'waves_screen.dart';
+import 'services/api_service.dart';
 
 class EmailLoginScreen extends StatefulWidget {
   const EmailLoginScreen({super.key});
@@ -9,14 +10,51 @@ class EmailLoginScreen extends StatefulWidget {
 }
 
 class _EmailLoginScreenState extends State<EmailLoginScreen> {
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _isRegistering = false;
 
-  // Navigate to WavesScreen
-  void _navigateToWavesScreen() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const WavesScreen()),
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showError('Please enter your email and password.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final result = _isRegistering
+        ? await ApiService.register(email, password)
+        : await ApiService.login(email, password);
+
+    setState(() => _isLoading = false);
+
+    if (result['success'] == true) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const WavesScreen()),
+      );
+    } else {
+      _showError(result['error'] ?? 'Something went wrong.');
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(fontFamily: "Inria")),
+        backgroundColor: Colors.redAccent,
+      ),
     );
   }
 
@@ -53,12 +91,12 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
               children: [
                 const SizedBox(height: 60),
 
-                const Text(
-                  "Login with Email",
-                  style: TextStyle(
+                Text(
+                  _isRegistering ? "Create Account" : "Login with Email",
+                  style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    fontFamily: "Inira",
+                    fontFamily: "Inria",
                     color: Colors.white,
                   ),
                 ),
@@ -72,11 +110,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 8,
-                        offset: Offset(0, 4),
-                      ),
+                      BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4)),
                     ],
                   ),
                   child: TextField(
@@ -85,19 +119,10 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: "Email",
-                      hintStyle: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 18,
-                        fontFamily: "Inira",
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 10),
+                      hintStyle: TextStyle(color: Colors.black54, fontSize: 18, fontFamily: "Inria"),
+                      contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 10),
                     ),
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontFamily: "Inira",
-                    ),
+                    style: const TextStyle(color: Colors.black, fontSize: 18, fontFamily: "Inria"),
                   ),
                 ),
 
@@ -110,11 +135,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 8,
-                        offset: Offset(0, 4),
-                      ),
+                      BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4)),
                     ],
                   ),
                   child: TextField(
@@ -123,27 +144,18 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: "Password",
-                      hintStyle: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 18,
-                        fontFamily: "Inira",
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 10),
+                      hintStyle: TextStyle(color: Colors.black54, fontSize: 18, fontFamily: "Inria"),
+                      contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 10),
                     ),
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontFamily: "Inira",
-                    ),
+                    style: const TextStyle(color: Colors.black, fontSize: 18, fontFamily: "Inria"),
                   ),
                 ),
 
                 const SizedBox(height: 40),
 
-                // Login Button -> Navigate to WavesScreen
+                // Login / Register Button
                 InkWell(
-                  onTap: _navigateToWavesScreen,
+                  onTap: _isLoading ? null : _submit,
                   borderRadius: BorderRadius.circular(25),
                   child: Container(
                     width: double.infinity,
@@ -156,15 +168,38 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                         end: Alignment.bottomRight,
                       ),
                     ),
-                    child: const Center(
-                      child: Text(
-                        "LOGIN",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: "Inira",
-                        ),
+                    child: Center(
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              _isRegistering ? "REGISTER" : "LOGIN",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: "Inria",
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Toggle between login and register
+                Center(
+                  child: TextButton(
+                    onPressed: () {
+                      setState(() => _isRegistering = !_isRegistering);
+                    },
+                    child: Text(
+                      _isRegistering
+                          ? "Already have an account? Login"
+                          : "Don't have an account? Register",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontFamily: "Inria",
                       ),
                     ),
                   ),

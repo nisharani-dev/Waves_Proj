@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 class RoomDetailsScreen extends StatelessWidget {
   final String roomName;
   final String status;
+  final String? timeDuration;
+  final String? distanceRange;
 
   const RoomDetailsScreen({
     super.key,
     required this.roomName,
     required this.status,
+    this.timeDuration,
+    this.distanceRange,
   });
 
   @override
@@ -51,7 +55,7 @@ class RoomDetailsScreen extends StatelessWidget {
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    fontFamily: "Inira",
+                    fontFamily: "Inria",
                   ),
                 ),
 
@@ -63,13 +67,13 @@ class RoomDetailsScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     color: isMinorLeakage ? Colors.redAccent : Colors.green,
-                    fontFamily: "Inira",
+                    fontFamily: "Inria",
                   ),
                 ),
 
                 const SizedBox(height: 40),
 
-                // Info Box
+                // Info Box — now shows real data from backend
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -77,46 +81,46 @@ class RoomDetailsScreen extends StatelessWidget {
                     color: Colors.grey.withOpacity(0.4),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         "Time Duration:",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
-                          fontFamily: "Inira",
+                          fontFamily: "Inria",
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        "N/A",  // Placeholder value
-                        style: TextStyle(
+                        timeDuration ?? 'N/A',
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white70,
-                          fontFamily: "Inira",
+                          fontFamily: "Inria",
                         ),
                       ),
 
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                      Text(
+                      const Text(
                         "Distance (Range):",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
-                          fontFamily: "Inira",
+                          fontFamily: "Inria",
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        "N/A",  // Placeholder value
-                        style: TextStyle(
+                        distanceRange ?? 'N/A',
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white70,
-                          fontFamily: "Inira",
+                          fontFamily: "Inria",
                         ),
                       ),
                     ],
@@ -144,7 +148,7 @@ class RoomDetailsScreen extends StatelessWidget {
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            fontFamily: "Inira",
+                            fontFamily: "Inria",
                           ),
                         ),
                       ),
